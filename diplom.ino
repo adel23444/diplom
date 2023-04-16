@@ -21,15 +21,15 @@ byte LED_RIGHT=11;
 byte LED_LEFT=10;
 
 
-// volatile unsigned long int timerLED1;
-// unsigned long int timerLED1Loop;
-// volatile bool timerLED1On;
-// bool LEDOn;
-// ISR (TIMER1_COMPA_vect)
-// {
-//   if(timerLED1On)
-//   	timerLED1++;
-// }
+volatile unsigned long int timerLED1;
+unsigned long int timerLED1Loop;
+volatile bool timerLED1On;
+bool LEDOn;
+ISR (TIMER1_COMPA_vect)
+{
+  if(timerLED1On)
+  	timerLED1++;
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -43,13 +43,34 @@ void setup() {
 //Делитель /8 дает нам хороший рабочий диапазон
 //так что сейчас мы просто жестко запрограммируем это.
 
-  // TCCR1A = (1<<WGM11); // сброс по совпадению
-  // TCCR1B |= 1<<CS10 | 1<<CS11 | 0<<CS12; 
+  TCCR1A = (1<<WGM11); // сброс по совпадению
+  TCCR1B |= 0<<CS10 | 1<<CS11 | 0<<CS12; 
 
-  // TIMSK1 |= (1<< OCIE1A); //подключение прерывания по переполнению 
-  //  sei(); //запуск прерываний
+  TIMSK1 |= (1<< OCIE1A); //подключение прерывания по переполнению 
+   sei(); //запуск прерываний
 }
-
+void TurnPovorotnik(byte LED) {
+  timerLED1On = 1;
+    cli();
+    timerLED1Loop = timerLED1;
+    sei();
+    if(timerLED1Loop >= 150)
+    {
+      if(LEDOn == 0)
+      {
+        LEDOn = 1;
+        digitalWrite(LED, LEDOn);
+       }
+      else
+      {
+        LEDOn = 0;
+        digitalWrite(LED, LEDOn);
+      }
+      cli();
+      timerLED1=0;
+      sei();
+    }  
+}
 void loop() {
 
   unsigned int distanceSm_left = sonar_left.ping(); // Создание сигнала, получение параметра его продолжительности в мкс (uS).
@@ -77,51 +98,20 @@ void loop() {
     }
   else if (distance_left > 0 && distance_left < 10) {
     digitalWrite(LED_BACK, LOW);
-    byte i = 0;
-    while (i < 10) {
-      digitalWrite(LED_RIGHT, HIGH);
-      delay(300);
-      digitalWrite(LED_RIGHT, LOW);
-      delay(300);
-      i++;
-    }
+    TurnPovorotnik(LED_RIGHT);
   }
 
   else if (distance_right > 0 && distance_right < 10) {
     digitalWrite(LED_BACK, LOW);
-    byte i = 0;
-    while (i < 10) {
-      digitalWrite(LED_LEFT, HIGH);
-      delay(300);
-      digitalWrite(LED_LEFT, LOW);
-      delay(300);
-      i++;
-    }
+    TurnPovorotnik(LED_LEFT);
   }
   else {
+    digitalWrite(LED_RIGHT, LOW);
+    digitalWrite(LED_LEFT, LOW);
     digitalWrite(LED_BACK, LOW);
   }
   
 
-  // timerLED1On = 1;
-  // cli();
-  // timerLED1Loop = timerLED1;
-  // sei();
-  // if(timerLED1Loop >= 1500)
-  // {
-  //   if(LEDOn == 0)
-  //   {
-  //     LEDOn = 1;
-  //     digitalWrite(13, LEDOn);
-  //   }
-  //   else
-  //   {
-  //     LEDOn = 0;
-  //     digitalWrite(13, LEDOn);
-  //   }
-  //   cli();
-  //   timerLED1=0;
-  //   sei();
-  // }
+  
   delay(300);
 }
