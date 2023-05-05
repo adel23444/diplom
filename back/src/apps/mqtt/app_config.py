@@ -10,12 +10,16 @@ def on_connect(mqtt_client, userdata, flags, rc):
         print("Подключение не удалось", rc)
 
 
+def on_disconnect(mqtt_client, userdata, rc):
+    if rc != 0:
+        print("Произошло отключение!")
+
 def on_message(mqtt_client, userdata, msg):
     base64_payload = ''
     try:
         base64_payload = base64.b64decode(msg.payload).decode('UTF-8')
     except:
-        base64_payload = msg.payload
+        base64_payload = msg.payload.decode('UTF-8')
     msg_dict = {
         'topic': msg.topic,
         'payload': base64_payload
@@ -24,6 +28,7 @@ def on_message(mqtt_client, userdata, msg):
 
 client = mqqt.Client()
 client.on_connect = on_connect
+client.on_disconnect = on_disconnect
 client.on_message = on_message
 client.username_pw_set(settings.MQTT_USER, settings.MQTT_PASSWORD)
 client.connect(
