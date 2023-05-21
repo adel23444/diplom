@@ -1,10 +1,65 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link type="text/css" href="{% static 'core/css/main.css' %}" rel="stylesheet"/>
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+<div class="wrapper">
+    <div class="nav_color">
+        <p class="nav_bar__title">Кафедра Автоматики и управления КНИТУ-КАИ</p>
+    </div>
+    <main class="content_block">
+        <aside class="nav_bar">
+            {% block mainmenu %}
+                <div style="display: flex; flex-direction: column; align-content: space-evenly">
+                    <div class="bar">
+                        &nbsp;
+                    </div>
+                    <div>
+                        <ul>
+                            <li>
+                                <div style="border: 1px solid #3354C8;">
+                                    <div class="li__block">
+                                        <img src="{% static 'core/images/add_button.svg' %}" alt="plus">
+                                        Добавить новое устройство
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div style="border: 1px solid #3354C8;">
+                                    <div class="li__block">
+                                        <img src="{% static 'core/images/list.svg' %}" alt="plus">
+                                        Вывести список всех устройств
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div style="border: 1px solid #3354C8;">
+                                    <div class="li__block">
+                                        <img src="{% static 'core/images/statistics.svg' %}" alt="plus">
+                                        Просмотр статистики использования
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            {% endblock %}
+        </aside>
+        <section class="content_body">
+
+            {% block content %}
+            {% endblock %}
+        </section>
+    </main>
+
+</div>
 
 </body>
 </html>

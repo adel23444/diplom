@@ -4,7 +4,7 @@ from django.db import models
 class Robot(models.Model):
 
     ipaddr = models.CharField(
-        verbose_name="IP-адресс устройства",
+        verbose_name="IP-адрес устройства",
         help_text="IP-адрес устройства",
         max_length=16
     )
@@ -19,7 +19,7 @@ class Robot(models.Model):
         verbose_name="Подключен ли робот",
         help_text="Подключен ли робот?",
         null=True,
-        blank=True
+        default=False
     )
     first_connect = models.DateField(
         verbose_name="Первое подключение робота",
@@ -28,6 +28,9 @@ class Robot(models.Model):
         null=True,
         blank=True
     )
+
+    def __str__(self):
+        return f"Робот {self.token}"
 
     class Meta:
 

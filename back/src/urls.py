@@ -20,5 +20,5 @@ from src.apps.core import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('publish', views.publish_message, name='publish'),
-    path('', views.get_message, name=''),
+    path('', views.index, name=''),
 ]
