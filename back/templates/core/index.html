@@ -1,4 +1,45 @@
 {% extends 'core/base.html' %}
+{% load static %}
 {% block content %}
-<h1>This is index HTML!</h1>
+    <div>
+        <h1 class="heading">Роботы</h1>
+    </div>
+    <div>
+        <ul class="robot__list">
+            {% for robot in robots %}
+                <li class="robot_block">
+                    <div>
+                        <div class="robot_maininf">
+                            <div class="robot_img">
+                                <img src="{% static 'core/images/robot_img.svg' %}" alt="robot">
+                            </div>
+                            <div class="robot_info">
+                                <p>ID: {{ robot.id }}</p>
+                                <p style="white-space: nowrap">IP-адрес: {{ robot.ipaddr }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex_block">
+                                <p style="margin-right: 75px">Кодовое имя:</p>
+                                <p>{{ robot.token }}</p>
+                            </div>
+                            <div class="flex_block">
+                                <p style="margin-right: 75px">Использование</p>
+                                <div class="square"></div>
+                            </div>
+                            <div class="flex_block" style="justify-content: space-between">
+                                <p>Осталось {{ robot.battery__battery_num }}% батареи</p>
+                            </div>
+                            <div style="text-align: center">
+                                <button class="robot_button">Подключиться</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
 {% endblock %}

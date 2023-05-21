@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Battery(models.Model):
 
@@ -14,8 +15,12 @@ class Battery(models.Model):
         verbose_name="Остаток заряда аккумулятора",
         help_text="Остаток заряда аккумулятора",
         null=True,
-        blank=True
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+
+    def __str__(self):
+        return f"Робот {self.robot.token} - остаток заряда {self.battery_num}%"
 
     class Meta:
         verbose_name = "Емкость батареи робота"

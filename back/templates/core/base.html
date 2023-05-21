@@ -4,13 +4,14 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link type="text/css" href="{% static 'core/css/main.css' %}" rel="stylesheet"/>
+    <link type="text/css" href="{% static 'core/css/index.css' %}" rel="stylesheet"/>
     <title>{{ title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 <div class="wrapper">
     <div class="nav_color">
-        <p class="nav_bar__title">Кафедра Автоматики и управления КНИТУ-КАИ</p>
+        <p class="nav_bar__title nav_bar__el">Кафедра Автоматики и управления КНИТУ-КАИ</p>
     </div>
     <main class="content_block">
         <aside class="nav_bar">
@@ -23,7 +24,7 @@
                         <ul>
                             <li>
                                 <div style="border: 1px solid #3354C8;">
-                                    <div class="li__block">
+                                    <div class="li__block nav_bar__el ">
                                         <img src="{% static 'core/images/add_button.svg' %}" alt="plus">
                                         Добавить новое устройство
                                     </div>
@@ -31,7 +32,7 @@
                             </li>
                             <li>
                                 <div style="border: 1px solid #3354C8;">
-                                    <div class="li__block">
+                                    <div class="li__block nav_bar__el ">
                                         <img src="{% static 'core/images/list.svg' %}" alt="plus">
                                         Вывести список всех устройств
                                     </div>
@@ -39,7 +40,7 @@
                             </li>
                             <li>
                                 <div style="border: 1px solid #3354C8;">
-                                    <div class="li__block">
+                                    <div class="li__block nav_bar__el ">
                                         <img src="{% static 'core/images/statistics.svg' %}" alt="plus">
                                         Просмотр статистики использования
                                     </div>
@@ -52,11 +53,11 @@
 
             {% endblock %}
         </aside>
-        <section class="content_body">
+        <div class="content_body">
 
             {% block content %}
             {% endblock %}
-        </section>
+        </div>
     </main>
 
 </div>
