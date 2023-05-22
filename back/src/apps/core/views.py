@@ -15,6 +15,7 @@ def publish_message(request):
     rc, mid = mqtt_client.publish(request_data['topic'], msg)
     return JsonResponse({'code': rc})
 
+
 def index(request):
     robots = Robot.objects.all()
     robots = robots.values('token', 'id', 'battery__battery_num', 'is_connected', 'ipaddr')
@@ -22,3 +23,11 @@ def index(request):
         "robots": robots,
     }
     return render(request, 'core/index.html', context=context)
+
+def robot(request, robot_id):
+    return HttpResponse(f"Робот с ID {robot_id}")
+
+
+# def robot_create(request):
+#
+#     if request.POST:

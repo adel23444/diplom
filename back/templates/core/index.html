@@ -31,7 +31,7 @@
                                 <p>Осталось {{ robot.battery__battery_num }}% батареи</p>
                             </div>
                             <div style="text-align: center">
-                                <button class="robot_button">Подключиться</button>
+                                <button class="robot_button" onclick="location.href = '{% url 'robot' robot.id %}' ">Подключиться</button>
                             </div>
                         </div>
                     </div>

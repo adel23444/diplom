@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.shortcuts import reverse
 
 class Robot(models.Model):
 
@@ -28,6 +28,9 @@ class Robot(models.Model):
         null=True,
         blank=True
     )
+
+    def get_absolute_url(self):
+        return reverse('robot', kwargs={'robot_id': self.pk})
 
     def __str__(self):
         return f"Робот {self.token}"
