@@ -1,1 +1,109 @@
 {% extends 'core/base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <script type="text/javascript">
+        const url = '/sensor_data/'
+        window.onload = function () {
+            const chart_left = new CanvasJS.Chart("chart_left", {
+                theme: "light1",
+                animationEnabled: true,
+                title: {
+                    text: "Датчик левого борта",
+                    fontFamily: "Roboto Slab",
+                    fontSize: 22,
+                },
+                data: [{
+                    type: "line",
+                    dataPoints: {{ sensor_left | safe }}
+                }]
+            })
+            chart_left.render();
+
+            const chart_prim = new CanvasJS.Chart("chart_prim", {
+                theme: "light1",
+                animationEnabled: true,
+                title: {
+                    text: "Датчик переднего борта",
+                    fontFamily: "Roboto Slab",
+                    fontSize: 22,
+                },
+                data: [{
+                    type: "line",
+                    dataPoints: {{ sensor_prim | safe }}
+                }]
+            })
+            chart_prim.render();
+
+            const chart_right = new CanvasJS.Chart("chart_right", {
+                theme: "light1",
+                animationEnabled: true,
+                title: {
+                    text: "Датчик правого борта",
+                    fontFamily: "Roboto Slab",
+                    fontSize: 22,
+                },
+                data: [{
+                    type: "line",
+                    dataPoints: {{ sensor_right | safe }}
+                }]
+            })
+            chart_right.render();
+
+            function updateData(chart, sensor_type) {
+                $.ajax({
+                    url: `${url}?sensor_type=${sensor_type}`,
+                    type: "GET",
+                    dataType: "json",
+                    success: (jsonResponse) => {
+                        console.log(jsonResponse)
+                        console.log(chart)
+                        chart.options.data[0].dataPoints = jsonResponse;
+                        chart.render();
+                    }
+                })
+                setTimeout(updateData, 500, chart, sensor_type);
+            }
+            updateData(chart_left, "left");
+            updateData(chart_prim, "primary");
+            updateData(chart_right, "right");
+        }
+
+    </script>
+    <div>
+        <h1 class="heading">Робот №{{ robot.pk }}</h1>
+    </div>
+    <div class="flex_block charts">
+        <div class="chart" id="chart_left">
+        </div>
+        <div class="chart" id="chart_prim">
+        </div>
+        <div class="chart" id="chart_right">
+        </div>
+    </div>
+    <div class="data_block">
+        <div class="data">
+            <table>
+                <tr>
+                    <td class="tr_ceil">IP-адрес:</td>
+                    <td class="tr_ceil">{{ robot.ipaddr }}</td>
+                </tr>
+                <tr>
+                    <td class="tr_ceil">Кодовое имя:</td>
+                    <td class="tr_ceil">{{ robot.token }}</td>
+                </tr>
+                <tr>
+                    <td class="tr_ceil">Заряд батареи:</td>
+                    <td class="tr_ceil">{{ robot.battery__battery_num }}%</td>
+                </tr>
+            </table>
+        </div>
+        <div class="control_block">
+            <button class="robot_button button_create button_control button_type">Ручной режим</button>
+            <button class="robot_button button_create button_control">Автоматическое движение</button>
+            <button class="robot_button button_create button_control button_delete">Удалить из системы</button>
+        </div>
+    </div>
+{% endblock %}
+

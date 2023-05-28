@@ -27,9 +27,16 @@ class Sensor(models.Model):
         blank=True,
         auto_created=True
     )
+    value = models.IntegerField(
+        verbose_name="Значение с датчика (см)",
+        help_text="Значение с датчика (см)",
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"Робот {self.robot} - датчик {self.sensor_type}"
+
     class Meta:
 
         verbose_name = "Датчик робота"

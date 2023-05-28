@@ -22,5 +22,6 @@ urlpatterns = [
     path('publish/', views.publish_message, name='publish'),
     path('', views.index, name='home'),
     path('robot/<int:robot_id>/', views.robot, name='robot'),
-    path('robot_create/', views.addrobot, name='addrobot')
+    path('robot_create/', views.addrobot, name='addrobot'),
+    path('sensor_data/', views.sensor_data, name='sensor_data')
 ]
