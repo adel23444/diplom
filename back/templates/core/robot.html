@@ -100,9 +100,9 @@
             </table>
         </div>
         <div class="control_block">
-            <button class="robot_button button_create button_control button_type">Ручной режим</button>
+            <button class="robot_button button_create button_control button_type" onclick="location.href = '{% url 'robot_bluetooth' robot.id %}'">Ручной режим</button>
             <button class="robot_button button_create button_control">Автоматическое движение</button>
-            <button class="robot_button button_create button_control button_delete">Удалить из системы</button>
+            <button class="robot_button button_create button_control button_delete" onclick="location.href = '{% url 'deleterobot' robot.id %}'">Удалить из системы</button>
         </div>
     </div>
 {% endblock %}

@@ -28,6 +28,11 @@ class Robot(models.Model):
         null=True,
         blank=True
     )
+    manual_manage = models.BooleanField(
+        verbose_name="Ручное управление роботом",
+        help_text="Ручное управление роботом",
+        default=False
+    )
 
     def get_absolute_url(self):
         return reverse('robot', kwargs={'robot_id': self.pk})

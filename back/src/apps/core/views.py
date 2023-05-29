@@ -39,8 +39,11 @@ def index(request):
 
 
 def robot(request, robot_id):
+    if not Robot.objects.filter(id=robot_id).exists():
+        return HttpResponseRedirect('/')
     robot = Robot.objects.get(id=robot_id)
-
+    if robot.manual_manage:
+        return HttpResponseRedirect(f'/robot_bluetooth/{robot_id}')
     sensor_left = Sensor.objects.filter(sensor_type=SensorTypeEnum.LEFT.name).order_by('date_sensor', '-id')[:10]
     sensor_left_data = get_sensor_data(sensor_left)
     sensor_prim = Sensor.objects.filter(sensor_type=SensorTypeEnum.PRIMARY.value).order_by('date_sensor', '-id')[:10]
@@ -53,7 +56,7 @@ def robot(request, robot_id):
             'id': robot.id,
             'token': robot.token,
             'ipaddr': robot.ipaddr,
-            'battery__battery_num': robot.battery.first().battery_num
+            'battery__battery_num': robot.battery.first().battery_num if robot.battery.all().exists() else "Не указано"
         },
         'sensor_left': sensor_left_data,
         'sensor_prim': sensor_prim_data,
@@ -85,3 +88,19 @@ def sensor_data(request):
     sensordata = get_sensor_data(sensor)
 
     return HttpResponse(json.dumps(sensordata))
+
+
+def deleterobot(request, robot_id):
+    if Robot.objects.filter(id=robot_id).exists():
+        Robot.objects.get(id=robot_id).delete()
+    return HttpResponseRedirect('/')
+
+
+def change_type_robot(request, robot_id):
+    robot = Robot.objects.get(id=robot_id)
+    robot.manual_manage = True
+    robot.save()
+    context = {
+        'robot': robot
+    }
+    return render(request, 'core/bluetooth.html', context=context)
