@@ -42,7 +42,7 @@ def robot(request, robot_id):
     if not Robot.objects.filter(id=robot_id).exists():
         return HttpResponseRedirect('/')
     robot = Robot.objects.get(id=robot_id)
-    if robot.manual_manage:
+    if robot.manual_manage == True:
         return HttpResponseRedirect(f'/robot_bluetooth/{robot_id}')
     sensor_left = Sensor.objects.filter(sensor_type=SensorTypeEnum.LEFT.name).order_by('date_sensor', '-id')[:10]
     sensor_left_data = get_sensor_data(sensor_left)

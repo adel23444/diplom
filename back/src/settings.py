@@ -141,7 +141,7 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-MQTT_SERVER = 'localhost'
+MQTT_SERVER = '185.152.81.104'
 MQTT_PORT = 1883
 MQTT_KEEPALIVE = 60
 MQTT_USER = 'robot'
