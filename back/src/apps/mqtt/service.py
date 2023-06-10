@@ -13,7 +13,7 @@ def parse(string: str) -> dict:
             if command == 'OK' and command in string:
                 robot_complete = True
             else:
-                value = string[ind + len(command):len(string) - 1]
+                value = string[ind + len(command):len(string)]
             robot_command = command
             break
 
