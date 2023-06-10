@@ -5,7 +5,7 @@ def parse(string: str) -> dict:
     robot_name = ''
     robot_command = ''
     value = 0
-
+    robot_complete = None
     for command in commands:
         if string.find(command):
             ind = string.find(command)
@@ -21,7 +21,7 @@ def parse(string: str) -> dict:
         'name': robot_name,
         'command': robot_command,
         'value': value,
-        'command_complete': robot_complete if robot_complete else None
+        'command_complete': robot_complete
     }
 
     return robot_dict
