@@ -7,8 +7,8 @@ def parse(string: str) -> dict:
     value = 0
     robot_complete = None
     for command in commands:
-        if string.find(command):
-            ind = string.find(command)
+        ind = string.find(command)
+        if ind >= 0:
             robot_name = string[0:ind]
             if command == 'OK' and command in string:
                 robot_complete = True

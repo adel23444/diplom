@@ -4,7 +4,8 @@
 
 {% block content %}
     <script type="text/javascript">
-        const url = '/sensor_data/'
+        const url = '/sensor_data/';
+        const url_robot = '/robot_data/';
         window.onload = function () {
             const chart_left = new CanvasJS.Chart("chart_left", {
                 theme: "light1",
@@ -57,22 +58,42 @@
                     type: "GET",
                     dataType: "json",
                     success: (jsonResponse) => {
-                        console.log(jsonResponse)
-                        console.log(chart)
                         chart.options.data[0].dataPoints = jsonResponse;
                         chart.render();
                     }
                 })
                 setTimeout(updateData, 500, chart, sensor_type);
             }
-            updateData(chart_left, "left");
-            updateData(chart_prim, "primary");
-            updateData(chart_right, "right");
-        }
 
+            updateData(chart_left, 0);
+            updateData(chart_prim, 1);
+            updateData(chart_right, 2);
+
+        }
+        function updateBatt() {
+                $.ajax({
+                    url: `${url_robot}?robot={{ robot.id }}`,
+                    type: "GET",
+                    dataType: "json",
+                    success: (jsonResponse) => {
+                        console.log(jsonResponse);
+                        const batt_el = document.querySelector('#robot_batt');
+                        if (jsonResponse['battery'] < 20) {
+                            batt_el.style.color = 'red';
+                        }
+                        else {
+                            batt_el.style.color = 'initial';
+                        }
+                        batt_el.textContent = `${jsonResponse['battery']}%`;
+
+                    }
+                })
+                setTimeout(updateBatt, 2500);
+            }
+            updateBatt();
     </script>
     <div>
-        <h1 class="heading">Робот №{{ robot.pk }}</h1>
+        <h1 class="heading">Робот №{{ robot.id }}</h1>
     </div>
     <div class="flex_block charts">
         <div class="chart" id="chart_left">
@@ -95,7 +116,7 @@
                 </tr>
                 <tr>
                     <td class="tr_ceil">Заряд батареи:</td>
-                    <td class="tr_ceil">{{ robot.battery__battery_num }}%</td>
+                    <td class="tr_ceil" id="robot_batt">{{ robot.battery__battery_num }}%</td>
                 </tr>
             </table>
         </div>

@@ -1,6 +1,8 @@
-import base64
+import base64, datetime
 import paho.mqtt.client as mqqt
 from django.conf import settings
+from .service import parse
+
 
 MAIN_TOPIC = 'esp8266/sensor/'
 def on_connect(mqtt_client, userdata, flags, rc):
@@ -16,7 +18,8 @@ def on_disconnect(mqtt_client, userdata, rc):
         print("Произошло отключение!")
 
 def on_message(mqtt_client, userdata, msg):
-    base64_payload = ''
+    from src.apps.core.models import Robot, Sensor
+    from src.apps.core.enums import SensorTypeEnum
     try:
         base64_payload = base64.b64decode(msg.payload).decode('UTF-8')
     except:
@@ -29,7 +32,27 @@ def on_message(mqtt_client, userdata, msg):
         'topic': msg.topic,
         'payload': base64_payload
     }
-    print(msg_dict)
+    robot_data = parse(base64_payload)
+    robot_name = robot_data['name']
+    if robot_name:
+        robot = Robot.objects.filter(token=robot_name).first()
+        command = robot_data['command']
+        print(command)
+        if 'SEN' in command:
+            if "L" in command:
+                sensor_type = SensorTypeEnum.LEFT
+            elif "R" in command:
+                sensor_type = SensorTypeEnum.RIGHT
+            elif "P" in command:
+                sensor_type = SensorTypeEnum.PRIMARY
+            sensor = Sensor.objects.create(
+                robot=robot,
+                sensor_type=sensor_type,
+                value=robot_data['value'],
+                date_sensor=datetime.datetime.now()
+            )
+        elif 'BATT' in command:
+            robot.battery.battery_num = robot_data['value']
 
     # if msg.topic == LEFT_TOPIC:
     #     if "SENL" in base64_payload:

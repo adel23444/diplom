@@ -12,13 +12,12 @@ class Sensor(models.Model):
         verbose_name='Ссылка на робота',
         help_text='Ссылка на робота',
     )
-    sensor_type = models.CharField(
+    sensor_type = models.IntegerField(
         verbose_name="Тип датчика",
         help_text="Тип датчика",
         null=True,
         blank=True,
-        max_length=100,
-        choices=[{x.name, x.value} for x in SensorTypeEnum]
+        choices=SensorTypeEnum.CHOICES
     )
     date_sensor = models.DateTimeField(
         verbose_name="Дата и время снятия показания",
@@ -35,7 +34,7 @@ class Sensor(models.Model):
     )
 
     def __str__(self):
-        return f"Робот {self.robot} - датчик {self.sensor_type}"
+        return f"Робот {self.robot} - датчик {SensorTypeEnum.CHOICES[self.sensor_type][1]} - значение {self.value}"
 
     class Meta:
 

@@ -25,5 +25,6 @@ urlpatterns = [
     path('robot_create/', views.addrobot, name='addrobot'),
     path('robot_delete/<int:robot_id>/', views.deleterobot, name='deleterobot'),
     path('robot_bluetooth/<int:robot_id>/', views.change_type_robot, name='robot_bluetooth'),
-    path('sensor_data/', views.sensor_data, name='sensor_data')
+    path('sensor_data/', views.sensor_data, name='sensor_data'),
+    path('robot_data/', views.robot_data, name='robot_data')
 ]

@@ -1,8 +1,14 @@
 import enum
 
 
-class SensorTypeEnum(enum.Enum):
+class SensorTypeEnum(object):
 
-    LEFT = "Левый борт"
-    PRIMARY = "Передняя часть"
-    RIGHT = "Правый борт"
+    LEFT = 0
+    PRIMARY = 1
+    RIGHT = 2
+
+    CHOICES = (
+        (LEFT, 'Левый борт'),
+        (PRIMARY, 'Передняя часть'),
+        (RIGHT, 'Правый борт')
+    )

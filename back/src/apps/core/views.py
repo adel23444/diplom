@@ -44,11 +44,11 @@ def robot(request, robot_id):
     robot = Robot.objects.get(id=robot_id)
     if robot.manual_manage == True:
         return HttpResponseRedirect(f'/robot_bluetooth/{robot_id}')
-    sensor_left = Sensor.objects.filter(sensor_type=SensorTypeEnum.LEFT.name).order_by('date_sensor', '-id')[:10]
+    sensor_left = Sensor.objects.filter(sensor_type=SensorTypeEnum.LEFT).order_by('date_sensor', '-id')[:10]
     sensor_left_data = get_sensor_data(sensor_left)
-    sensor_prim = Sensor.objects.filter(sensor_type=SensorTypeEnum.PRIMARY.value).order_by('date_sensor', '-id')[:10]
+    sensor_prim = Sensor.objects.filter(sensor_type=SensorTypeEnum.PRIMARY).order_by('date_sensor', '-id')[:10]
     sensor_prim_data = get_sensor_data(sensor_prim)
-    sensor_right = Sensor.objects.filter(sensor_type=SensorTypeEnum.RIGHT.value).order_by('date_sensor', '-id')[:10]
+    sensor_right = Sensor.objects.filter(sensor_type=SensorTypeEnum.RIGHT).order_by('date_sensor', '-id')[:10]
     sensor_right_data = get_sensor_data(sensor_right)
 
     context = {
@@ -81,13 +81,22 @@ def addrobot(request):
 
 
 def sensor_data(request):
-    print(request.GET)
     type = request.GET.get('sensor_type')
-    sensor = Sensor.objects.filter(sensor_type=type.upper()).order_by('-id')[0:10]
+    sensor = Sensor.objects.filter(sensor_type=type).order_by('-id')[0:10]
 
     sensordata = get_sensor_data(sensor)
 
     return HttpResponse(json.dumps(sensordata))
+
+def robot_data(request):
+    robot_id = request.GET.get('robot')
+    robot = Robot.objects.get(id=robot_id)
+
+    robot_data = {
+        'battery': robot.battery.first().battery_num if robot.battery.all().exists() else "Не указано",
+    }
+
+    return HttpResponse(json.dumps(robot_data))
 
 
 def deleterobot(request, robot_id):

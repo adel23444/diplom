@@ -13,21 +13,21 @@ class Command(BaseCommand):
         for i in range(0, 100):
             Sensor.objects.create(
                 robot=robot,
-                sensor_type=SensorTypeEnum.LEFT.name,
+                sensor_type=SensorTypeEnum.LEFT,
                 value=random.randint(15, 36),
                 date_sensor=datetime.datetime.now()
             )
             time.sleep(1)
             Sensor.objects.create(
                 robot=robot,
-                sensor_type=SensorTypeEnum.PRIMARY.name,
+                sensor_type=SensorTypeEnum.PRIMARY,
                 value=random.randint(15, 20),
                 date_sensor=datetime.datetime.now()
             )
             time.sleep(1)
             Sensor.objects.create(
                 robot=robot,
-                sensor_type=SensorTypeEnum.RIGHT.name,
+                sensor_type=SensorTypeEnum.RIGHT,
                 value=random.randint(15, 36),
                 date_sensor=datetime.datetime.now()
             )
