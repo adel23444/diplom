@@ -52,7 +52,10 @@ def on_message(mqtt_client, userdata, msg):
                 date_sensor=datetime.datetime.now()
             )
         elif 'BATT' in command:
+            print(robot.battery.first())
             robot.battery.battery_num = robot_data['value']
+            print(robot.battery.battery_num)
+            robot.save()
 
     # if msg.topic == LEFT_TOPIC:
     #     if "SENL" in base64_payload:
