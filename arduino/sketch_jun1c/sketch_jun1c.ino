@@ -1,36 +1,46 @@
 #include <SoftwareSerial.h>
-#include <iarduino_VCC.h>
+//#include <iarduino_VCC.h>
 #include <NewPing.h>
 // создаём объект для работы с программным Serial
 // и передаём ему пины TX и RX
+SoftwareSerial BTSerial(2, 3);
 SoftwareSerial mySerial(10, 11);
 
 // Код ошибки: код 01; Радиус поворота выше скорости; Код 02; Скорость выше 255;
-#define CON_MOTOR1     0
-#define CON_MOTOR2     0
+#define CON_MOTOR1 0
+#define CON_MOTOR2 0
 
 // Motor shield использует четыре контакта 4, 5, 6, 7 для управления моторами
 // 4 и 7 — для направления, 5 и 6 — для скорости
-#define SPEED_1      5
-#define DIR_1        4
+#define SPEED_1 5
+#define DIR_1 4
 
-#define SPEED_2      6
-#define DIR_2        7
+#define SPEED_2 6
+#define DIR_2 7
+
+// Возможные направления движения робота
+#define FORWARD   0
+#define BACKWARD  1
+#define LEFT      2
+#define RIGHT     3
 
 // serial-порт к которому подключён Wi-Fi модуль
 #define WIFI_SERIAL mySerial
-#define MAX_VOLTAGE   5.0
+#define MAX_VOLTAGE 5.0
+#define MANUAL_BUTTON 8
 String command_l, command_r, command_p, command_b;
 
-int command; //Int to store app command state.
-int Speed = 204; // 0 - 255.
+int command;      //Int to store app command state.
+int Speed = 204;  // 0 - 255.
 int LED = 13;
 int Speedsec;
 int buttonState = 0;
 int lastButtonState = 0;
-int Turnradius = 0; //Set the radius of a turn, 0 - 255 Note:the robot will malfunction if this is higher than int Speed.
+int Turnradius = 0;  //Set the radius of a turn, 0 - 255 Note:the robot will malfunction if this is higher than int Speed.
 int brakeTime = 45;
-int brkonoff = 1; //1 for the electronic braking system, 0 for normal.
+int brkonoff = 1;  //1 for the electronic braking system, 0 for normal.
+
+volatile boolean manualMode = false;
 
 byte PIN_TRIG_LEFT = 14;
 byte PIN_ECHO_LEFT = 15;
@@ -54,24 +64,36 @@ void setup() {
   Serial.print("Serial init OK\r\n");
   // открываем Serial-соединение с Wi-Fi модулем на скорости 115200 бод
   WIFI_SERIAL.begin(9600);
-   for(int i = 4; i <= 7; i++)
-        pinMode(i, OUTPUT);
-    pinMode(LED, OUTPUT); //Set the LED pin.
-  Serial.begin(9600);  //Set the baud rate to your Bluetooth module.
+  for (int i = 4; i <= 7; i++)
+    pinMode(i, OUTPUT);
+  pinMode(LED, OUTPUT);  //Set the LED pin.
+  pinMode(MANUAL_BUTTON, INPUT);
+  BTSerial.begin(9600);  //Set the baud rate to your Bluetooth module.
 }
 
 void loop() {
-
-  unsigned int distanceSm_left = sonar_left.ping(); // Создание сигнала, получение параметра его продолжительности в мкс (uS).
+  unsigned int button = digitalRead(MANUAL_BUTTON);
+  if(button == HIGH) {
+    manualMode = !manualMode;
+  }
+  if (manualMode) {
+    manualDrive();
+  }
+  else {
+    Serial.println("MANUAL MODE OFF");
+  }
+  delay(200);
+  
+  unsigned int distanceSm_left = sonar_left.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
   unsigned int distance_left = distanceSm_left / US_ROUNDTRIP_CM;
   delay(20);
-  unsigned int distanceSm_right = sonar_right.ping(); // Создание сигнала, получение параметра его продолжительности в мкс (uS).
+  unsigned int distanceSm_right = sonar_right.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
   unsigned int distance_right = distanceSm_right / US_ROUNDTRIP_CM;
   delay(20);
-  unsigned int distanceSm_primary = sonar_primary.ping(); // Создание сигнала, получение параметра его продолжительности в мкс (uS).
+  unsigned int distanceSm_primary = sonar_primary.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
   unsigned int distance_primary = distanceSm_primary / US_ROUNDTRIP_CM;
   delay(20);
-  float  battery_value = analogRead_VCC();
+  // float battery_value = analogRead_VCC();
   String command = "";
   if (!WIFI_SERIAL) {
     Serial.print("NOT AVALIABLE");
@@ -81,44 +103,42 @@ void loop() {
     String str = WIFI_SERIAL.readString();
     str.trim();
     Serial.println(str.c_str());
-    
+
     if (str == String("SL")) {
       command_l = "SENL" + String(distance_left);
       Serial.println(command_l);
       WIFI_SERIAL.println(command_l);
       Serial.println("LEFT sended");
       delay(100);
-    }
-    else if (str == String("SR")) {
+    } else if (str == String("SR")) {
       command_r = "SENR" + String(distance_right);
       Serial.println(command_r);
       WIFI_SERIAL.println(command_r);
       Serial.println("RIGHT sended");
       delay(100);
-    }
-    else if (str == String("SP")) {
+    } else if (str == String("SP")) {
       command_p = "SENP" + String(distance_primary);
       Serial.println(command_p);
       WIFI_SERIAL.println(command_p);
       Serial.println("PRIMARY sended");
       delay(100);
-    }
-    else if (str == String("SB")) {
-      command_b = "BATT" + String(round((battery_value/5.0)*100));
-      Serial.println(command_b);
-      WIFI_SERIAL.println(command_b);
-      Serial.println("BATTERY sended");
-      delay(100);
-    }
+    } // else if (str == String("SB")) {
+    //   command_b = "BATT" + String(round((battery_value / 5.0) * 100));
+    //   Serial.println(command_b);
+    //   WIFI_SERIAL.println(command_b);
+    //   Serial.println("BATTERY sended");
+    //   delay(100);
+    // }
   }
 
   command_l = "", command_r = "", command_p = "", command_b = "";
 }
 
 void manualDrive() {
-  if (Serial.available() > 0) {
-    command = Serial.read();
-    Stop(); //Initialize with motors stoped.
+  Serial.println("MANUAL MODE ON");
+  if (BTSerial.available() > 0) {
+    command = BTSerial.read();
+    Stop();  //Initialize with motors stoped.
     switch (command) {
       case 'F':
         go(FORWARD, Speed);
@@ -226,36 +246,28 @@ void brakeOn() {
   lastButtonState = buttonState;
 }
 void brakeOff() {
-
 }
 
-void go(int newDirection, int speed)
-{
+void go(int newDirection, int speed) {
   boolean motorDirection_1, motorDirection_2;
 
-  switch ( newDirection ) {
-
+  switch (newDirection) {
     case FORWARD:
-
-        motorDirection_1 = false;
-        motorDirection_2 = true;
-
-
-        break;
+      motorDirection_1 = false;
+      motorDirection_2 = true;
+      break;
     case BACKWARD:
-
-        motorDirection_1 = true;
-        motorDirection_2 = false;
-
-        break;
+      motorDirection_1 = true;
+      motorDirection_2 = false;
+      break;
     case LEFT:
-        motorDirection_1 = false;
-        motorDirection_2 = false;
-        break;
+      motorDirection_1 = false;
+      motorDirection_2 = false;
+      break;
     case RIGHT:
-        motorDirection_1 = true;
-        motorDirection_2 = true;
-        break;
+      motorDirection_1 = true;
+      motorDirection_2 = true;
+      break;
   }
 
   // Если мы ошиблись с подключением - меняем направление на обратное
