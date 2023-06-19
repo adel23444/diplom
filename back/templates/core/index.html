@@ -15,11 +15,14 @@
                             </div>
                             <div class="robot_info">
                                 <p>ID: {{ robot.id }}</p>
-                                <p style="white-space: nowrap">IP-адрес: {{ robot.ipaddr }}</p>
+                                <div class="flex_block" style="flex-wrap: wrap">
+                                    <p style="margin-right: 20px">IP-адрес:</p>
+                                    <p>{{ robot.ipaddr }}</p>
+                                </div>
                             </div>
                         </div>
                         <div>
-                            <div class="flex_block">
+                            <div class="flex_block" style="flex-wrap: wrap">
                                 <p style="margin-right: 75px">Кодовое имя:</p>
                                 <p>{{ robot.token }}</p>
                             </div>
@@ -27,7 +30,9 @@
                                 <p>Осталось {{ robot.battery__battery_num }}% батареи</p>
                             </div>
                             <div style="text-align: center">
-                                <button class="robot_button" onclick="location.href = '{% url 'robot' robot.id %}' ">Подключиться</button>
+                                <button class="robot_button" onclick="location.href = '{% url 'robot' robot.id %}' ">
+                                    Подключиться
+                                </button>
                             </div>
                         </div>
                     </div>

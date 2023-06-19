@@ -73,6 +73,7 @@ ul {
 
 @media screen and (max-width: 1200px) {
     .nav_bar {
-        width: 40%;
+        width: 30%;
+        font-size: 14px;
     }
 }
