@@ -1,10 +1,17 @@
 #include <SoftwareSerial.h>
-//#include <iarduino_VCC.h>
+#include <iarduino_VCC.h>
 #include <NewPing.h>
+#include <Thread.h>
 // создаём объект для работы с программным Serial
 // и передаём ему пины TX и RX
 SoftwareSerial BTSerial(2, 3);
 SoftwareSerial mySerial(10, 11);
+
+Thread sensor_left = Thread();
+Thread sensor_right = Thread();
+Thread sensor_primary = Thread();
+Thread battery = Thread();
+
 
 // Код ошибки: код 01; Радиус поворота выше скорости; Код 02; Скорость выше 255;
 #define CON_MOTOR1 0
@@ -19,20 +26,22 @@ SoftwareSerial mySerial(10, 11);
 #define DIR_2 7
 
 // Возможные направления движения робота
-#define FORWARD   0
-#define BACKWARD  1
-#define LEFT      2
-#define RIGHT     3
+#define FORWARD 0
+#define BACKWARD 1
+#define LEFT 2
+#define RIGHT 3
 
 // serial-порт к которому подключён Wi-Fi модуль
 #define WIFI_SERIAL mySerial
 #define MAX_VOLTAGE 5.0
 #define MANUAL_BUTTON 8
 String command_l, command_r, command_p, command_b;
+long lassensor_l = 0, lassensor_r = 0, lassensor_p = 0, lassensor_b = 0;
+unsigned int distance_primary = 0, distance_left = 0, distance_right = 0;
 
-int command;      //Int to store app command state.
-int Speed = 204;  // 0 - 255.
-int LED = 13;
+int command;                        //Int to store app command state.
+byte Speed = 204, SlowSpeed = 191;  // 0 - 255.
+byte LED = 13;
 int Speedsec;
 int buttonState = 0;
 int lastButtonState = 0;
@@ -40,9 +49,11 @@ int Turnradius = 0;  //Set the radius of a turn, 0 - 255 Note:the robot will mal
 int brakeTime = 45;
 int brkonoff = 1;  //1 for the electronic braking system, 0 for normal.
 
-volatile boolean manualMode = false;
+volatile boolean manualMode = true;
+volatile uint16_t mydelay = 5000;
+volatile uint16_t timecore = 0, last_press = 0;
 
-byte PIN_TRIG_LEFT = 14;
+byte PIN_TRIG_LEFT = 1.4;
 byte PIN_ECHO_LEFT = 15;
 
 byte PIN_TRIG_RIGHT = 16;
@@ -67,75 +78,73 @@ void setup() {
   for (int i = 4; i <= 7; i++)
     pinMode(i, OUTPUT);
   pinMode(LED, OUTPUT);  //Set the LED pin.
-  pinMode(MANUAL_BUTTON, INPUT);
+  pinMode(MANUAL_BUTTON, INPUT_PULLUP);
   BTSerial.begin(9600);  //Set the baud rate to your Bluetooth module.
+  sensor_left.onRun(sensorLeft);
+  sensor_left.setInterval(1750);
+  sensor_right.onRun(sensorRight);
+  sensor_right.setInterval(2000);
+  sensor_primary.onRun(sensorPrimary);
+  sensor_primary.setInterval(2250);
+  battery.onRun(Battery);
+  battery.setInterval(6000);
+  TCCR2B |= (1 << WGM20);
+  TIMSK2 |= (1 << OCIE2B);
+  TCCR2B |= (1 << CS21) | (1 << CS20) | (1 << CS22);
+  OCR2B = 50;
+}
+
+SIGNAL (TIMER2_COMPB_vect) {
+  timecore++;
+  if (timecore > mydelay) {
+    timecore = 0;
+  }
+  unsigned int button = digitalRead(MANUAL_BUTTON);
+
+  if (button == HIGH && millis() - last_press > 100) {
+    Stop();
+    manualMode = !manualMode;
+    last_press = millis();
+  }
 }
 
 void loop() {
   unsigned int button = digitalRead(MANUAL_BUTTON);
-  if(button == HIGH) {
+  long now = millis();
+  if (sensor_left.shouldRun())
+    sensor_left.run();
+
+  if (sensor_right.shouldRun())
+    sensor_right.run();
+
+  if (sensor_primary.shouldRun())
+    sensor_primary.run();
+
+  if (battery.shouldRun())
+    battery.run();
+
+  if (button == HIGH) {
+    Stop();
     manualMode = !manualMode;
   }
   if (manualMode) {
+    // Serial.println("MANUAL MODE ON");
+
     manualDrive();
+    if (now - millis() > 1000) {
+      digitalWrite(LED, HIGH);
+    }
+    if (now - millis() > 2000) {
+      digitalWrite(LED, LOW);
+    }
+  } else {
+    // Serial.println("MANUAL MODE OFF");
+    sei();
+    automaticDrive();
   }
-  else {
-    Serial.println("MANUAL MODE OFF");
-  }
-  delay(200);
-  
-  unsigned int distanceSm_left = sonar_left.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
-  unsigned int distance_left = distanceSm_left / US_ROUNDTRIP_CM;
-  delay(20);
-  unsigned int distanceSm_right = sonar_right.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
-  unsigned int distance_right = distanceSm_right / US_ROUNDTRIP_CM;
-  delay(20);
-  unsigned int distanceSm_primary = sonar_primary.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
-  unsigned int distance_primary = distanceSm_primary / US_ROUNDTRIP_CM;
-  delay(20);
-  // float battery_value = analogRead_VCC();
-  String command = "";
-  if (!WIFI_SERIAL) {
-    Serial.print("NOT AVALIABLE");
-  }
-  // Serial.print(WIFI_SERIAL.readString());
-  if (WIFI_SERIAL.available()) {
-    String str = WIFI_SERIAL.readString();
-    str.trim();
-    Serial.println(str.c_str());
-
-    if (str == String("SL")) {
-      command_l = "SENL" + String(distance_left);
-      Serial.println(command_l);
-      WIFI_SERIAL.println(command_l);
-      Serial.println("LEFT sended");
-      delay(100);
-    } else if (str == String("SR")) {
-      command_r = "SENR" + String(distance_right);
-      Serial.println(command_r);
-      WIFI_SERIAL.println(command_r);
-      Serial.println("RIGHT sended");
-      delay(100);
-    } else if (str == String("SP")) {
-      command_p = "SENP" + String(distance_primary);
-      Serial.println(command_p);
-      WIFI_SERIAL.println(command_p);
-      Serial.println("PRIMARY sended");
-      delay(100);
-    } // else if (str == String("SB")) {
-    //   command_b = "BATT" + String(round((battery_value / 5.0) * 100));
-    //   Serial.println(command_b);
-    //   WIFI_SERIAL.println(command_b);
-    //   Serial.println("BATTERY sended");
-    //   delay(100);
-    // }
-  }
-
-  command_l = "", command_r = "", command_p = "", command_b = "";
 }
 
 void manualDrive() {
-  Serial.println("MANUAL MODE ON");
   if (BTSerial.available() > 0) {
     command = BTSerial.read();
     Stop();  //Initialize with motors stoped.
@@ -192,6 +201,28 @@ void manualDrive() {
     } else {
       brakeOff();
     }
+  }
+}
+
+void automaticDrive() {
+
+
+  for (byte i = 0; i < 100; i++) {
+    if (manualMode == HIGH) {
+      break;
+    }
+    if ((distance_left < 30 && distance_left > 20) || ((distance_left < 30 && distance_left > 20) && (distance_primary < 30 && distance_primary > 20))
+        || (distance_right < 30 && distance_right > 20) || ((distance_right < 30 && distance_right > 20) && (distance_primary < 30 && distance_primary > 20))) {
+      go(FORWARD, SlowSpeed);
+    } else if (distance_left < 20 || (distance_left < 20 && distance_primary < 20)) {
+      go(RIGHT, SlowSpeed);
+    } else if (distance_right < 20 || (distance_right < 20 && distance_primary < 20)) {
+      go(LEFT, SlowSpeed);
+    } else if (distance_right < 20 && distance_left < 20 && distance_primary < 20) {
+      go(BACKWARD, Speed);
+    }
+
+    go(FORWARD, Speed);
   }
 }
 
@@ -253,12 +284,13 @@ void go(int newDirection, int speed) {
 
   switch (newDirection) {
     case FORWARD:
-      motorDirection_1 = false;
-      motorDirection_2 = true;
-      break;
-    case BACKWARD:
       motorDirection_1 = true;
       motorDirection_2 = false;
+
+      break;
+    case BACKWARD:
+      motorDirection_1 = false;
+      motorDirection_2 = true;
       break;
     case LEFT:
       motorDirection_1 = false;
@@ -280,4 +312,44 @@ void go(int newDirection, int speed) {
 
   digitalWrite(DIR_1, motorDirection_1);
   digitalWrite(DIR_2, motorDirection_2);
+}
+
+void sensorLeft() {
+  unsigned int distanceSm_left = sonar_left.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
+  distance_left = distanceSm_left / US_ROUNDTRIP_CM;
+  delay(20);
+  command_l = "SENL" + String(distance_left);
+  Serial.println(command_l);
+  WIFI_SERIAL.println(command_l);
+  Serial.println("LEFT sended");
+  command_l = "";
+}
+void sensorRight() {
+  unsigned int distanceSm_right = sonar_right.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
+  distance_right = distanceSm_right / US_ROUNDTRIP_CM;
+  delay(20);
+  command_r = "SENR" + String(distance_right);
+  Serial.println(command_r);
+  WIFI_SERIAL.println(command_r);
+  Serial.println("RIGHT sended");
+  command_r = "";
+}
+void sensorPrimary() {
+  unsigned int distanceSm_primary = sonar_primary.ping();  // Создание сигнала, получение параметра его продолжительности в мкс (uS).
+  distance_primary = distanceSm_primary / US_ROUNDTRIP_CM;
+  delay(20);
+  command_p = "SENP" + String(distance_primary);
+  Serial.println(command_p);
+  WIFI_SERIAL.println(command_p);
+  Serial.println("PRIMARY sended");
+  command_p = "";
+}
+void Battery() {
+  float battery_value = analogRead_VCC();
+  delay(20);
+  command_b = "BATT" + String(round((battery_value / 5.0) * 100));
+  Serial.println(command_b);
+  WIFI_SERIAL.println(command_b);
+  Serial.println("BATTERY sended");
+  command_p = "";
 }
