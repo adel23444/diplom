@@ -1,6 +1,6 @@
 import base64, datetime
 import paho.mqtt.client as mqqt
-from django.conf import settings
+from src import settings
 from .service import parse
 
 
